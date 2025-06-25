@@ -1,21 +1,35 @@
-import { IUser } from "../types/user.type";
 import mongoose, { Schema, Model, model } from "mongoose";
+import bcrypt from "bcrypt";
+import { IUser, UserDocument } from "../types/user.type";
 
 const userSchema = new Schema<IUser>(
   {
     name: { type: String },
     email: { type: String, required: true, unique: true },
-    password: { type: String }, // only for credentials-based users
+    password: { type: String },
     provider: {
       type: String,
       required: true,
       default: "credentials",
       enum: ["credentials", "google", "github"],
-    },  
-    providerId: { type: String }, // e.g., GitHub or Google ID
+    },
+    providerId: { type: String },
     avatar: { type: String },
   },
   { timestamps: true }
 );
 
-export const User: Model<IUser> = mongoose.model("User", userSchema);
+userSchema.pre("save", async function (this: UserDocument, next) {
+  if (!this.isModified("password")) return next();
+  this.password = await bcrypt.hash(this.password!, 10);
+  next();
+});
+
+userSchema.methods.matchPassword = async function (
+  this: UserDocument,
+  userpassword: string
+) {
+  return await bcrypt.compare(userpassword, this.password!);
+};
+
+export const User = model<IUser, Model<UserDocument>>("User", userSchema);

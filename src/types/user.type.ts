@@ -8,3 +8,6 @@ export interface IUser extends Document {
   avatar?: string;
 }
 
+export interface UserDocument extends IUser, Document {
+  matchPassword(userpassword: string): Promise<string>;
+}
