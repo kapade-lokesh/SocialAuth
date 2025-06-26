@@ -6,5 +6,5 @@ import connectDB from "./src/config/connectDB";
 connectDB();
 
 app.listen(config.port, () => {
-  console.log("app listen on port 3000");
+  console.log(`app listen on port ${config.port}`);
 });
